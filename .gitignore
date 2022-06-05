@@ -1,6 +1,4 @@
-UserInfo.json
-Token.json
-
+*.json
 .classpath
 .project
 /.gradle/
