@@ -1,34 +1,28 @@
 package me.Untaini.DiscordBotForAlgorithm;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 public class UserManager {
 	static private Map<String, String> userInfo;
 	
 	static {
 		userInfo = new HashMap<String, String>();
+		JSONObject json = JSONManager.getJSON("UserInfo.json");
+		for(Object userId : json.keySet()) 
+			userInfo.put((String)userId, (String)json.get(userId));
 		
 		try {
 			File jsonFile = new File("UserInfo.json");
-			if(jsonFile.exists()) {
-				JSONObject json = (JSONObject)new JSONParser().parse(new BufferedReader(new FileReader("UserInfo.json")));
-				for(Object userId : json.keySet()) 
-					userInfo.put((String)userId, (String)json.get(userId));
-			}
-			else jsonFile.createNewFile();
+			if(!jsonFile.exists()) jsonFile.createNewFile();
 		}catch(Exception e) {}
 	}
 	
 	
 	public void finalize(){
-		saveJSONFile();
+		saveInfo();
 	}
 	
 	public static void addId(String userId, String baekjoonId) {
@@ -51,14 +45,8 @@ public class UserManager {
 		return userInfo.get(userId);
 	}
 	
-	public static void saveJSONFile(){
-		try {
-			FileWriter fw = new FileWriter(new File("UserInfo.json"));
-			fw.write(new JSONObject(userInfo).toJSONString());
-			fw.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}	
+	public static void saveInfo(){
+		JSONManager.saveJSON("UserInfo.json", new JSONObject(userInfo));
 	}
 	
 	
