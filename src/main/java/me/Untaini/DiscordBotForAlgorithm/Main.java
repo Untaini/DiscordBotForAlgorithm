@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 public class Main extends ListenerAdapter{
 
 	public static void main(String[] args) throws LoginException {
-		JDA jda = JDABuilder.createLight((String)JSONManager.getJSON("Token.json").get("token"), Collections.emptyList())
+		JDA jda = JDABuilder.createLight((String)JSONManager.getJSON("token.json").get("token"), Collections.emptyList())
 				  .addEventListeners(new Main())
 		          .build();
 		

@@ -7,15 +7,16 @@ import org.json.simple.JSONObject;
 
 public class UserManager {
 	static private Map<String, String> userInfo;
+	private final static String userInfoFileName = "userInfo.json";
 	
 	static {
 		userInfo = new HashMap<String, String>();
-		JSONObject json = JSONManager.getJSON("UserInfo.json");
+		JSONObject json = JSONManager.getJSON(userInfoFileName);
 		for(Object userId : json.keySet()) 
 			userInfo.put((String)userId, (String)json.get(userId));
 		
 		try {
-			File jsonFile = new File("UserInfo.json");
+			File jsonFile = new File(userInfoFileName);
 			if(!jsonFile.exists()) jsonFile.createNewFile();
 		}catch(Exception e) {}
 	}
@@ -46,7 +47,7 @@ public class UserManager {
 	}
 	
 	public static void saveInfo(){
-		JSONManager.saveJSON("UserInfo.json", new JSONObject(userInfo));
+		JSONManager.saveJSON(userInfoFileName, new JSONObject(userInfo));
 	}
 	
 	
