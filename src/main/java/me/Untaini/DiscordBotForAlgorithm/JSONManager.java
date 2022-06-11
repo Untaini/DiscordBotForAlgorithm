@@ -9,18 +9,26 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 public class JSONManager {
-	static JSONObject getJSON(String fileName) {
+	static JSONObject getJSONFile(String fileName) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			JSONObject json = (JSONObject)new JSONParser().parse(br);
 			br.close();
 			return json;
-		}catch(Exception e) {}
-		
-		return new JSONObject();
+		}catch(Exception e) {
+			return new JSONObject();
+		}
 	}
 	
-	static void saveJSON(String fileName, JSONObject json) {
+	static JSONObject getJSON(String jsonString) {
+		try {
+			return (JSONObject)new JSONParser().parse(jsonString);
+		}catch(Exception e) {
+			return new JSONObject();
+		}
+	}
+	
+	static void saveJSONFile(String fileName, JSONObject json) {
 		try {
 			FileWriter fw = new FileWriter(new File(fileName));
 			fw.write(json.toJSONString());

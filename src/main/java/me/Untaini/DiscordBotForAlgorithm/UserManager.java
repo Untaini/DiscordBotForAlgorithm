@@ -6,35 +6,38 @@ import java.util.Map;
 import org.json.simple.JSONObject;
 
 public class UserManager {
-	static private Map<String, String> userInfo;
-	private final static String userInfoFileName = "userInfo.json";
+	private final static String userDataFileName = "userData.json";
+	static private Map<String, String> userData;
 	
 	static {
-		userInfo = new HashMap<String, String>();
-		JSONObject json = JSONManager.getJSON(userInfoFileName);
-		for(Object userId : json.keySet()) 
-			userInfo.put((String)userId, (String)json.get(userId));
+		userData = new HashMap<>();
 		
 		try {
-			File jsonFile = new File(userInfoFileName);
-			if(!jsonFile.exists()) jsonFile.createNewFile();
+			File jsonFile = new File(userDataFileName);
+			if(!jsonFile.exists())
+				jsonFile.createNewFile();
+			else {
+				JSONObject json = JSONManager.getJSONFile(userDataFileName);
+				for(Object userId : json.keySet()) 
+					userData.put((String)userId, (String)json.get(userId));
+			}
 		}catch(Exception e) {}
 	}
 	
 	
 	public void finalize(){
-		saveInfo();
+		saveData();
 	}
 	
-	public static void addId(String userId, String baekjoonId) {
-		userInfo.put(userId, baekjoonId);
+	public void addId(String userId, String baekjoonId) {
+		userData.put(userId, baekjoonId);
 	}
 	
-	public static boolean checkRegister(String userId) {
-		return userInfo.containsKey(userId);
+	public boolean checkRegister(String userId) {
+		return userData.containsKey(userId);
 	}
 	
-	public static boolean editId(String userId, String baekjoonId) {
+	public boolean editId(String userId, String baekjoonId) {
 		if(checkRegister(userId)) {
 			addId(userId, baekjoonId);			
 			return true;
@@ -42,12 +45,12 @@ public class UserManager {
 		else return false;
 	}
 	
-	public static String getBeakjoonId(String userId) {
-		return userInfo.get(userId);
+	public String getBeakjoonId(String userId) {
+		return userData.get(userId);
 	}
 	
-	public static void saveInfo(){
-		JSONManager.saveJSON(userInfoFileName, new JSONObject(userInfo));
+	public void saveData(){
+		JSONManager.saveJSONFile(userDataFileName, new JSONObject(userData));
 	}
 	
 	
