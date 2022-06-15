@@ -7,7 +7,7 @@ import org.json.simple.JSONObject;
 
 public class UserManager {
 	private final static String userDataFileName = "userData.json";
-	static private Map<String, String> userData;
+	static private Map<Long, User> userData;
 	
 	static {
 		userData = new HashMap<>();
@@ -19,7 +19,7 @@ public class UserManager {
 			else {
 				JSONObject json = JSONManager.getJSONFile(userDataFileName);
 				for(Object userId : json.keySet()) 
-					userData.put((String)userId, (String)json.get(userId));
+					userData.put((Long)userId, new User((JSONObject)json.get(userId)));
 			}
 		}catch(Exception e) {}
 	}
@@ -29,15 +29,15 @@ public class UserManager {
 		saveData();
 	}
 	
-	public void addId(String userId, String baekjoonId) {
-		userData.put(userId, baekjoonId);
+	public void addId(long userId, String baekjoonId) {
+		userData.put(userId, new User(userId, baekjoonId));
 	}
 	
-	public boolean checkRegister(String userId) {
+	public boolean checkRegister(long userId) {
 		return userData.containsKey(userId);
 	}
 	
-	public boolean editId(String userId, String baekjoonId) {
+	public boolean editId(long userId, String baekjoonId) {
 		if(checkRegister(userId)) {
 			addId(userId, baekjoonId);			
 			return true;
@@ -45,12 +45,27 @@ public class UserManager {
 		else return false;
 	}
 	
-	public String getBeakjoonId(String userId) {
+	public User getUser(long userId) {
 		return userData.get(userId);
 	}
 	
 	public void saveData(){
 		JSONManager.saveJSONFile(userDataFileName, new JSONObject(userData));
+	}
+	
+	public void allUsersUpdateHomework() {
+		for(User user : userData.values())
+			user.updateHomework();
+	}
+	
+	public void allUsersRemoveProblem(int week, int index) {
+		for(User user : userData.values())
+			user.removeProblem(week, index);
+	}
+	
+	public void allUsersClearProblem(int week, int index) {
+		for(User user : userData.values())
+			user.clearProblem(week, index);
 	}
 	
 	

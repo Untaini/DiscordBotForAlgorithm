@@ -48,7 +48,7 @@ public class SolvedacAPIManager {
 		return resultSet;
 	}
 	
-	public String getProblemName(int problemId) throws Exception {
+	public String getProblemName(int problemId) throws Exception{
 		String apiUrlFormat = "https://solved.ac/api/v3/problem/show?problemId=%d";
 		JSONObject json = JSONManager.getJSON(apiGet(String.format(apiUrlFormat, problemId)));
 		return (String) json.get("titleKo");

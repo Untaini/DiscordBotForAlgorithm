@@ -12,6 +12,7 @@ import org.json.simple.JSONObject;
 public class HomeworkManager {
 	private static final String homeworkFileName = "homework.json";
 	private static List<WeekHomework> homeworkData;
+	public static final int totalWeek = 8;
 	
 	static {
 		homeworkData = new ArrayList<>();
@@ -19,8 +20,11 @@ public class HomeworkManager {
 		try {
 			File jsonFile = new File(homeworkFileName);
 			
-			if(!jsonFile.exists()) 
+			if(!jsonFile.exists()) {
 				jsonFile.createNewFile();
+				for(int cnt=0; cnt<totalWeek; ++cnt)
+					homeworkData.add(new WeekHomework());
+			}
 			else {
 				JSONObject json = JSONManager.getJSONFile(homeworkFileName);
 				for(Object homework : (JSONArray)json.get("homeworks")) 
@@ -34,8 +38,17 @@ public class HomeworkManager {
 	}
 	
 	public void saveData() {
-		Map<String, List<WeekHomework>> homeworkMap = new HashMap<>();
-		homeworkMap.put("homeworks", homeworkData);
+		Map<String, List<JSONObject>> homeworkMap = new HashMap<>();
+		List<JSONObject> homeworkList = new ArrayList<>();
+		
+		for(WeekHomework wh : homeworkData)
+			homeworkList.add(wh.getJSONObject());
+		homeworkMap.put("homeworks", homeworkList);
+		
 		JSONManager.saveJSONFile(homeworkFileName, new JSONObject(homeworkMap));
+	}
+	
+	public WeekHomework getHomework(int week) {
+		return homeworkData.get(week-1);
 	}
 }
