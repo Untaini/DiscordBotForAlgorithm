@@ -6,11 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 
 public class HomeworkManager {
-	private static final String homeworkFileName = "homework.json";
+	private static final String homeworkFileName = "homeworkData.json";
 	private static List<WeekHomework> homeworkData;
 	public static final int totalWeek = 8;
 	
@@ -26,26 +27,24 @@ public class HomeworkManager {
 					homeworkData.add(new WeekHomework());
 			}
 			else {
-				JSONObject json = JSONManager.getJSONFile(homeworkFileName);
-				for(Object homework : (JSONArray)json.get("homeworks")) 
-					homeworkData.add(new WeekHomework((JSONObject) homework));
+				JsonObject json = JsonManager.getJsonFile(homeworkFileName).getAsJsonObject();
+				for(JsonElement homework : json.get("homeworkData").getAsJsonArray()) {
+					homeworkData.add(new WeekHomework(homework.getAsJsonObject()));
+				}
 			}
-		}catch(Exception e) {}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void finalize() {
 		saveData();
 	}
 	
-	public void saveData() {
-		Map<String, List<JSONObject>> homeworkMap = new HashMap<>();
-		List<JSONObject> homeworkList = new ArrayList<>();
-		
-		for(WeekHomework wh : homeworkData)
-			homeworkList.add(wh.getJSONObject());
-		homeworkMap.put("homeworks", homeworkList);
-		
-		JSONManager.saveJSONFile(homeworkFileName, new JSONObject(homeworkMap));
+	public static void saveData() {
+		Map<String, List<WeekHomework>> jsonMap = new HashMap<>();
+		jsonMap.put("homeworkData", homeworkData);
+		JsonManager.saveJsonFile(homeworkFileName, jsonMap);
 	}
 	
 	public WeekHomework getHomework(int week) {

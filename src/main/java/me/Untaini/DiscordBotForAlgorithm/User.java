@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 
 public class User {
 	private long discordId;
@@ -22,19 +24,18 @@ public class User {
 		updateHomework();
 	}
 	
-	User(JSONObject json){
-		this.setDiscordId((Long)json.get("discordId"));
-		this.setBaekjoonId((String)json.get("baekjoonId"));
-		this.setSolvedProblemCount((Integer)json.get("solvedProblemCount"));
-		this.passedProblemPerWeek = new HashMap<Integer, List<Boolean>>();
+	User(JsonObject json){
+		this.setDiscordId(json.get("discordId").getAsLong());
+		this.setBaekjoonId(json.get("baekjoonId").getAsString());
+		this.setSolvedProblemCount(json.get("solvedProblemCount").getAsInt());
+		this.passedProblemPerWeek = new HashMap<>();
 		
-		json = (JSONObject) json.get("passedProblemPerWeek");
-		for(Object week : json.keySet()) {
+		json = json.get("passedProblemPerWeek").getAsJsonObject();
+		for(String week : json.keySet()) {
 			List<Boolean> tempList = new ArrayList<>();
-			JSONArray jsonArr = (JSONArray)json.get(week);
-			for(Object isPassed : jsonArr)
-				tempList.add((Boolean)isPassed);
-			this.passedProblemPerWeek.put((Integer)week, tempList);
+			for(JsonElement isPassed : json.get(week).getAsJsonArray())
+				tempList.add(isPassed.getAsBoolean());
+			this.passedProblemPerWeek.put(Integer.parseInt(week), tempList);
 		}
 		
 		updateHomework();
@@ -67,12 +68,14 @@ public class User {
 	public void updateHomework() {
 		HomeworkManager homeworkManager = new HomeworkManager();
 		
-		while(passedProblemPerWeek.size() < HomeworkManager.totalWeek)
-			passedProblemPerWeek.put(passedProblemPerWeek.size()+1, new ArrayList<>());
+		while(this.passedProblemPerWeek.size() < HomeworkManager.totalWeek)
+			this.passedProblemPerWeek.put(this.passedProblemPerWeek.size()+1, new ArrayList<>());
 		
 		for(int week=1; week<=HomeworkManager.totalWeek; ++week)
-			while(passedProblemPerWeek.get(week).size() < homeworkManager.getHomework(week).getCount())
-				passedProblemPerWeek.get(week).add(false);
+			while(this.passedProblemPerWeek.get(week).size() < homeworkManager.getHomework(week).getCount())
+				this.passedProblemPerWeek.get(week).add(false);
+		
+		solvedProblemCount = 0;
 	}
 	
 	public void removeProblem(int week, int index) {
@@ -83,13 +86,43 @@ public class User {
 		passedProblemPerWeek.get(week).set(index, false);
 	}
 	
-	public JSONObject getJSONObject() {
-		Map<String, Object> json = new HashMap<>();
-		json.put("discordId", discordId);
-		json.put("baekjoonId", baekjoonId);
-		json.put("solvedProblemCount", solvedProblemCount);
-		json.put("passedProblemPerWeek", new JSONObject(passedProblemPerWeek));
-		return new JSONObject(json);
+	public List<Boolean> getProblemStatus(int week){
+		return passedProblemPerWeek.get(week);
+	}
+	
+	public List<Problem> checkHomework() {
+		SolvedacAPIManager api = new SolvedacAPIManager();
+		int totalSolvedProblemCount = 0;
+		try {
+			if(this.solvedProblemCount < (totalSolvedProblemCount = api.getSolvedProblems(this))) {
+				List<Problem> newSolvedProblemList = new ArrayList<>();
+				Set<Integer> totalSolvedProblemSet = api.getSolvedProblemSet(this);
+				
+				HomeworkManager homeworkManager = new HomeworkManager();
+				
+				for(int week=1; week<=HomeworkManager.totalWeek; ++week) {
+					WeekHomework homework = homeworkManager.getHomework(week);
+					if(!homework.isActive()) continue;
+					
+					for(int cnt=0; cnt<homework.getCount(); ++cnt) {
+						Problem problem = homework.getProblem(cnt);
+						if(!this.passedProblemPerWeek.get(week).get(cnt) && totalSolvedProblemSet.contains(problem.getID())) {
+							this.passedProblemPerWeek.get(week).set(cnt, true);
+							newSolvedProblemList.add(problem);
+						}
+					}
+				}
+				
+				this.solvedProblemCount = totalSolvedProblemCount;
+				
+				return newSolvedProblemList;
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 	
 	

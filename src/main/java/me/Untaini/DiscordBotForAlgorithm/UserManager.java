@@ -1,9 +1,10 @@
 package me.Untaini.DiscordBotForAlgorithm;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 
 public class UserManager {
 	private final static String userDataFileName = "userData.json";
@@ -17,11 +18,13 @@ public class UserManager {
 			if(!jsonFile.exists())
 				jsonFile.createNewFile();
 			else {
-				JSONObject json = JSONManager.getJSONFile(userDataFileName);
-				for(Object userId : json.keySet()) 
-					userData.put((Long)userId, new User((JSONObject)json.get(userId)));
+				JsonObject json = JsonManager.getJsonFile(userDataFileName).getAsJsonObject();
+				for(String userId : json.keySet()) 
+					userData.put(Long.parseLong(userId), new User(json.get(userId).getAsJsonObject()));
 			}
-		}catch(Exception e) {}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -31,6 +34,7 @@ public class UserManager {
 	
 	public void addId(long userId, String baekjoonId) {
 		userData.put(userId, new User(userId, baekjoonId));
+		saveData();
 	}
 	
 	public boolean checkRegister(long userId) {
@@ -39,7 +43,7 @@ public class UserManager {
 	
 	public boolean editId(long userId, String baekjoonId) {
 		if(checkRegister(userId)) {
-			addId(userId, baekjoonId);			
+			userData.get(userId).setBaekjoonId(baekjoonId);	
 			return true;
 		}
 		else return false;
@@ -49,8 +53,8 @@ public class UserManager {
 		return userData.get(userId);
 	}
 	
-	public void saveData(){
-		JSONManager.saveJSONFile(userDataFileName, new JSONObject(userData));
+	public static void saveData(){
+		JsonManager.saveJsonFile(userDataFileName, userData);
 	}
 	
 	public void allUsersUpdateHomework() {
@@ -68,5 +72,14 @@ public class UserManager {
 			user.clearProblem(week, index);
 	}
 	
+	public Map<User, List<Problem>> allUsersCheckHomework() {
+		Map<User, List<Problem>> solvedMap = new HashMap<>();
+		for(User user : userData.values()) {
+			List<Problem> solvedList = user.checkHomework();
+			if(solvedList != null) 
+				solvedMap.put(user, solvedList);
+		}
+		return solvedMap;
+	}
 	
 }

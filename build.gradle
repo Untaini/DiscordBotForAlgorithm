@@ -18,11 +18,24 @@ repositories {
 }
 
 dependencies {
-    implementation "net.dv8tion:JDA:5.0.0-alpha.12" 
-   	implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+    api 'net.dv8tion:JDA:5.0.0-alpha.12'
+    api 'com.google.code.gson:gson:2.9.0'
 }
 
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+jar{
+	from {
+		configurations.runtimeClasspath.collect {
+			it.isDirectory() ? it : zipTree(it)
+		}
+	}
+
+	manifest {
+		attributes 'Main-Class' : 'me.Untaini.DiscordBotForAlgorithm.Main'
+	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
