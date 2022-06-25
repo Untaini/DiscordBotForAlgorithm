@@ -64,7 +64,7 @@ public class Main extends ListenerAdapter{
 								
 								for(User user : solvedMap.keySet()) 
 									for(Problem problem : solvedMap.get(user))
-										messages.add(new EmbedBuilder().appendDescription(String.format("<@%d>님이 [%d번 %s](%s) 문제를 해결하였습니다!\n", user.getDiscordId(), problem.getID(), problem.getName(), api.getProblemLink(problem.getID()))).build());
+										messages.add(new EmbedBuilder().appendDescription(String.format("<@!%d>님이 [%d번 %s](%s) 문제를 해결하였습니다!\n", user.getDiscordId(), problem.getID(), problem.getName(), api.getProblemLink(problem.getID()))).build());
 								
 								if(!messages.isEmpty())
 									guild.getTextChannelById(987996968934580274L).sendMessageEmbeds(messages).queue();
@@ -72,7 +72,7 @@ public class Main extends ListenerAdapter{
 						}
 					}
 					catch(Exception e) {
-						e.printStackTrace();
+						Thread.sleep(COOLDOWN*10);
 					}
 					Thread.sleep(COOLDOWN);	
 				}
@@ -111,13 +111,13 @@ public class Main extends ListenerAdapter{
 		String baekjoonId = event.getOption("id").getAsString();
 		SolvedacAPIManager api = new SolvedacAPIManager();
 		if(!api.isBaekjoonId(baekjoonId)) {
-			MessageEmbed message = getEmbedMessage("백준에 등록되지 않은 id입니다.", RGBA(255,0,0,0));
+			MessageEmbed message = getEmbedMessage("백준에 등록되지 않은 ID입니다.", RGBA(255,0,0,0));
 			event.replyEmbeds(message).setEphemeral(true).queue();
     		return;
 		}
     	
     	userManager.addId(userId, baekjoonId);
-    	MessageEmbed message = getEmbedMessage(String.format("성공적으로 백준 ID를 등록하였습니다. (등록된 id : %s)", baekjoonId), RGBA(34, 177, 16, 0));
+    	MessageEmbed message = getEmbedMessage(String.format("백준 ID 등록 완료 (등록된 ID : %s)", baekjoonId), RGBA(34, 177, 16, 0));
 		event.replyEmbeds(message).setEphemeral(true).queue();
 		return;
     }
@@ -135,13 +135,13 @@ public class Main extends ListenerAdapter{
     	
 		SolvedacAPIManager api = new SolvedacAPIManager();
 		if(!api.isBaekjoonId(nowId)) {
-			MessageEmbed message = getEmbedMessage("백준에 등록되지 않은 id입니다.", RGBA(255,0,0,0));
+			MessageEmbed message = getEmbedMessage("백준에 등록되지 않은 ID입니다.", RGBA(255,0,0,0));
 			event.replyEmbeds(message).setEphemeral(true).queue();
     		return;
 		}
     	
 		if(userManager.editId(userId, nowId)) {
-			MessageEmbed message = getEmbedMessage(String.format("성공적으로 %s에서 %s로 변경하였습니다.", prevId, nowId), RGBA(34,177,16,0));
+			MessageEmbed message = getEmbedMessage(String.format("백준 ID 변경 완료 (변경 전 ID : %s -> 변경 후 ID : %s)", prevId, nowId), RGBA(34,177,16,0));
 			event.replyEmbeds(message).setEphemeral(true).queue();
 		}
 		else {
@@ -157,6 +157,13 @@ public class Main extends ListenerAdapter{
 		UserManager userManager = new UserManager();
 		HomeworkManager homeworkManager = new HomeworkManager();
 		User user = userManager.getUser(event.getUser().getIdLong());
+		
+		if(user == null) {
+    		MessageEmbed message = getEmbedMessage("당신은 아직 등록되지 않은 유저입니다.", RGBA(255,0,0,0));
+    		event.replyEmbeds(message).setEphemeral(true).queue();
+			return;
+		}
+		
 		SolvedacAPIManager api = new SolvedacAPIManager();
 		EmbedBuilder eb = new EmbedBuilder();
 		StringBuilder sb = eb.getDescriptionBuilder();
@@ -200,6 +207,7 @@ public class Main extends ListenerAdapter{
     	}
     	
 		event.replyEmbeds(eb.build()).setEphemeral(true).queue();
+		return;
     }
     
     public void setHomework(SlashCommandInteractionEvent event) {
@@ -326,6 +334,8 @@ public class Main extends ListenerAdapter{
     		MessageEmbed message = getEmbedMessage("당신은 관리자가 아닙니다.", RGBA(255,0,0,0));
     		event.replyEmbeds(message).setEphemeral(true).queue();
     	}
+    	
+    	return;
     }
     
     private int RGBA(int red, int blue, int green, int alpha) {
